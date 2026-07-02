@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/apps/api/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "editor.quickSuggestions": {
+    "comments": "on",
+    "strings": "on",
+    "other": "on"
+  },
+  "editor.wordBasedSuggestions": "allDocuments",
+  "editor.suggestOnTriggerCharacters": true
+}
