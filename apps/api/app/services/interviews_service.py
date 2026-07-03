@@ -48,7 +48,6 @@ def submit_answer_service(interview_id: str, data: SubmitAnswerRequest) -> Submi
 
 # 面试反馈与总结.
 def finish_interview_service(interview_id: str, data: FinishInterviewRequest) -> FinishInterviewResponse:
-
     response = client.responses.create(
         model=settings.openai_model_name,
         input=build_finish_interview_prompt(data)

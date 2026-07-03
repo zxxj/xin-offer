@@ -1,10 +1,10 @@
-# 定义面试难度的可选值,继承str是为了让枚举值在JSON中表现为字符串.
-from enum import Enum
+# 面试相关.
 
+from enum import Enum
 from pydantic import BaseModel, Field
 
 
-# 难度等级.
+# 定义面试难度的可选值,继承str是为了让枚举值在JSON中表现为字符串.
 class Difficulty(str, Enum):
     junior = "junior"
     middle = "middle"
