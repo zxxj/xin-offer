@@ -4,6 +4,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 
+# 难度等级.
 class Difficulty(str, Enum):
     junior = "junior"
     middle = "middle"
@@ -24,3 +25,46 @@ class CreateInterviewRequest(BaseModel):
 class CreateInterviewResponse(BaseModel):
     interview_id: str
     first_question: str
+
+# 用户追问时的请求体.
+class SubmitAnswerRequest(BaseModel):
+    # AI上一轮问的问题.
+    question: str = Field(min_length=1)
+    # 用户的回答.
+    answer: str = Field(min_length=1)
+    # 当前是第几轮对话,最多3轮.
+    round: int = Field(ge=1,le=3)
+
+# 追问的返回体.
+class SubmitAnswerResponse(BaseModel):
+    interview_id: str
+    # 下一轮的问题.
+    next_question: str
+    # 下一轮的轮次.
+    round: int
+    # 面试是否结束.
+    is_finished: bool 
+
+# 面试最终反馈.
+# 历史消息列表.
+class InterviewMessageHistory(BaseModel):
+    role: str = Field(min_length=1)
+    content: str = Field(min_length=1)
+
+# 面试反馈请求体.
+class FinishInterviewRequest(BaseModel):
+    # 消息列表.
+    messages: list[InterviewMessageHistory] = Field(min_length=1)
+
+# 面试反馈返回体.
+class FinishInterviewResponse(BaseModel):
+    # 面试id.
+    interview_id: str
+    # 成绩.
+    score: int = Field(ge=0, le=100)
+    # 优点.
+    strengths: list[str]
+    # 不足.
+    weaknesses: list[str]
+    # 学习建议.
+    suggestions: list[str]
