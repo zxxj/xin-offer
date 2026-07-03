@@ -1,7 +1,7 @@
 type CreateInterviewRequest = {
   target_role: string | null;
   tech_stack: string[] | null;
-  experience_years: string | null;
+  experience_years: number | null;
   difficulty: string | null;
 };
 
