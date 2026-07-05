@@ -5,6 +5,11 @@ type CreateInterviewRequest = {
   difficulty: string;
 };
 
+type CreateInterviewResponse = {
+  interview_id: string;
+  first_question: string;
+};
+
 type InterviewMessage = {
   interview_id: string;
   question: string;
@@ -12,7 +17,29 @@ type InterviewMessage = {
   round: number;
 };
 
-export const createInterview = async (data: CreateInterviewRequest) => {
+type InterviewMessageResponse = {
+  interview_id: string;
+  next_question: string;
+  round: number;
+  is_finished: boolean;
+};
+
+export type FinishInterviewResponse = {
+  interview_id: string;
+  score: number;
+  strengths: string[];
+  weaknesses: string[];
+  suggestions: string[];
+};
+
+export type FinishInterviewMessage = {
+  role: string;
+  content: string;
+};
+
+export const createInterview = async (
+  data: CreateInterviewRequest,
+): Promise<CreateInterviewResponse> => {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/interviews`,
     {
@@ -31,7 +58,9 @@ export const createInterview = async (data: CreateInterviewRequest) => {
   return res.json();
 };
 
-export const interview = async (data: InterviewMessage) => {
+export const interview = async (
+  data: InterviewMessage,
+): Promise<InterviewMessageResponse> => {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/interviews/${data.interview_id}/messages`,
     {
@@ -48,19 +77,6 @@ export const interview = async (data: InterviewMessage) => {
   }
 
   return res.json();
-};
-
-export type FinishInterviewResponse = {
-  interview_id: string;
-  score: number;
-  strengths: string[];
-  weaknesses: string[];
-  suggestions: string[];
-};
-
-export type FinishInterviewMessage = {
-  role: string;
-  content: string;
 };
 
 export const finishInterview = async (

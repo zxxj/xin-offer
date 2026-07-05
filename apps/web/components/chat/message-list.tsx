@@ -5,34 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-export type Message =
-  | {
-      id: string;
-      type: "text";
-      role: "user" | "assistant";
-      content: string;
-    }
-  | {
-      id: string;
-      role: "assistant";
-      type: "start_interview_button";
-      content: string;
-    }
-  | {
-      id: string;
-      role: "assistant";
-      type: "interview_finish";
-      content: string;
-      interviewId: string;
-    };
-
-type MessageListProps = {
-  messages: Message[];
-  className?: string;
-  handleStartInterviewButton: () => void;
-  handleViewInterviewResultButton: (interviewId: string) => void;
-};
+import type { MessageListProps } from "./types";
 
 const MessageList = ({
   messages,
