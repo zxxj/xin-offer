@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import InputBox from "./input-box";
 import MessageList from "./message-list";
-import StartInterviewDialog, {
+import CreateInterviewDialog, {
   type StartInterviewPayload,
-} from "./start-interview-dialog";
+} from "./create-interview-dialog";
 import { chat } from "@/services/chat";
 import { createInterview, interview } from "@/services/interview";
 import { DIFFICULTY_OPTIONS } from "@/lib/const";
@@ -20,6 +20,7 @@ const Chat = () => {
     addUserMessage,
     addAssistantMessage,
     addAssistantFinishMessage,
+    addAssistantErrorMessage,
   } = useChatMessages();
 
   const {
@@ -34,6 +35,7 @@ const Chat = () => {
 
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [startingInterview, setStartingInterview] = useState<boolean>(false);
   const [startDialogOpen, setStartDialogOpen] = useState(false);
   const [finishDialogOpen, setFinishDialogOpen] = useState(false);
 
@@ -46,37 +48,15 @@ const Chat = () => {
 
     try {
       setSending(true);
-      // 面试会话.
+
       if (activeInterviewId) {
-        const {
-          next_question,
-          round: resultRound,
-          is_finished,
-        } = await interview({
-          interview_id: activeInterviewId,
-          question: getLastAssistantQuestion(messages),
-          answer: content,
-          round: activeInterviewRound,
-        });
-
-        if (is_finished) {
-          addAssistantFinishMessage(
-            "面试已结束,点击下方按钮生成面试反馈报告.",
-            activeInterviewId,
-          );
-          finishInterview();
-        } else {
-          addAssistantMessage(next_question);
-        }
-
-        setActiveInterviewRound(resultRound);
+        await handleInterviewAnswer(content);
       } else {
-        // 闲聊.
-        const { reply } = await chat({ message: content });
-        addAssistantMessage(reply);
+        await handleChatMessage(content);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      addAssistantErrorMessage();
     } finally {
       setSending(false);
     }
@@ -91,20 +71,75 @@ const Chat = () => {
     setFinishDialogOpen(true);
   };
 
+  // 创建面试会话.
+  const handleCreateInterview = async (data: StartInterviewPayload) => {
+    const content = `我要面试${data.target_role}的${DIFFICULTY_OPTIONS.find((d) => d.value === data.difficulty)?.label}岗位,我已有${data.experience_years}年工作经验,技术栈是${data.tech_stack.join(",")}`;
+    addUserMessage(content);
+    const { first_question, interview_id } = await createInterview(data);
+    startInterview(interview_id);
+    addAssistantMessage(first_question);
+  };
+
+  // 创建面试弹框的确认按钮.
   const handleStartInterviewConfirm = async (data: StartInterviewPayload) => {
+    if (startingInterview) return;
+
+    setStartingInterview(true);
     setStartDialogOpen(false);
     try {
-      const content = `我要面试${data.target_role}的${DIFFICULTY_OPTIONS.find((d) => d.value === data.difficulty)?.label}岗位,我已有${data.experience_years}年工作经验,技术栈是${data.tech_stack.join(",")}`;
-      addUserMessage(content);
-
-      const { first_question, interview_id } = await createInterview(data);
-      startInterview(interview_id);
-
-      addAssistantMessage(first_question);
+      await handleCreateInterview(data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      addAssistantErrorMessage("创建面试会话失败,请重试.");
+    } finally {
+      setStartingInterview(false);
     }
   };
+
+  // 闲聊模式.
+  const handleChatMessage = async (content: string) => {
+    const { reply } = await chat({ message: content });
+    addAssistantMessage(reply);
+  };
+
+  // 面试模式.
+  const handleInterviewAnswer = async (content: string) => {
+    // 如果不是面试状态,直接结束.
+    if (!activeInterviewId) return;
+
+    const {
+      next_question,
+      round: resultRound,
+      is_finished,
+    } = await interview({
+      interview_id: activeInterviewId,
+      question: getLastAssistantQuestion(messages),
+      answer: content,
+      round: activeInterviewRound,
+    });
+
+    if (is_finished) {
+      addAssistantFinishMessage(
+        "面试已结束,点击下方按钮生成面试结果.",
+        activeInterviewId,
+      );
+
+      finishInterview();
+    } else {
+      addAssistantMessage(next_question);
+    }
+
+    setActiveInterviewRound(resultRound);
+  };
+
+  // 根据历史消息总结.
+  const reportMessages = useMemo(
+    () =>
+      messages
+        .filter((m) => m.type === "text" && m.id !== "welcome")
+        .map(({ role, content }) => ({ role, content })),
+    [messages],
+  );
 
   return (
     <div className="flex h-screen w-screen flex-col bg-background">
@@ -117,9 +152,9 @@ const Chat = () => {
         value={input}
         onChange={setInput}
         onSend={handleSend}
-        disabled={sending}
+        disabled={sending || startingInterview}
       />
-      <StartInterviewDialog
+      <CreateInterviewDialog
         open={startDialogOpen}
         onOpenChange={setStartDialogOpen}
         onConfirm={handleStartInterviewConfirm}
@@ -129,9 +164,7 @@ const Chat = () => {
         open={finishDialogOpen}
         onOpenChange={setFinishDialogOpen}
         interviewId={interviewFinishId}
-        messages={messages
-          .filter((m) => m.type === "text" && m.id !== "welcome")
-          .map(({ role, content }) => ({ role, content }))}
+        messages={reportMessages}
       />
     </div>
   );

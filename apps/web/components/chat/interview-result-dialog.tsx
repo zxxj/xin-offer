@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -124,29 +124,32 @@ const InterviewResultDialog = ({
     onOpenChange(next);
   };
 
+  const fetchResult = useCallback(async () => {
+    if (!interviewId) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await finishInterview(interviewId, messages);
+      setResult(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "加载失败");
+    } finally {
+      setLoading(false);
+    }
+  }, [interviewId, messages]);
+
   useEffect(() => {
     if (!open || !interviewId) return;
 
-    let cancelled = false;
-    const fetchResult = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await finishInterview(interviewId, messages);
-        if (!cancelled) setResult(data);
-      } catch (err) {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : "加载失败");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
+    const timer = window.setTimeout(() => {
+      fetchResult();
+    }, 0);
 
-    fetchResult();
     return () => {
-      cancelled = true;
+      window.clearTimeout(timer);
     };
-  }, [open, interviewId, messages]);
+  }, [open, interviewId, fetchResult]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -158,7 +161,7 @@ const InterviewResultDialog = ({
       >
         <DialogHeader className="gap-2 text-left">
           <DialogTitle className="text-base font-semibold tracking-tight">
-            面试反馈报告
+            面试结果
           </DialogTitle>
           {interviewId && (
             <p className="font-mono text-[11px] tracking-wide text-muted-foreground">
@@ -176,7 +179,16 @@ const InterviewResultDialog = ({
 
         {!loading && error && (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-            反馈加载失败：{error}
+            <p>面试结果加载失败：{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={fetchResult}
+              className="w-fit rounded-full"
+            >
+              重试
+            </Button>
           </div>
         )}
 

@@ -27,10 +27,17 @@ export const useChatMessages = () => {
     ]);
   };
 
+  const addAssistantErrorMessage = (
+    content: string = "抱歉,请求失败,请稍后重试.",
+  ) => {
+    setMessages((prev) => [...prev, createAssistantTextMessage(content)]);
+  };
+
   return {
     messages,
     addUserMessage,
     addAssistantMessage,
     addAssistantFinishMessage,
+    addAssistantErrorMessage,
   };
 };
