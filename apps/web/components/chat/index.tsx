@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import InputBox from "./input-box";
 import MessageList from "./message-list";
 import CreateInterviewDialog, {
@@ -10,7 +10,6 @@ import { chat } from "@/services/chat";
 import { createInterview, interview } from "@/services/interview";
 import { DIFFICULTY_OPTIONS } from "@/lib/const";
 import InterviewResultDialog from "./interview-result-dialog";
-import { getLastAssistantQuestion } from "@/lib/chat";
 import { useChatMessages } from "@/hooks/use-chat-messages";
 import { useInterviewSession } from "@/hooks/use-interview-session";
 
@@ -25,8 +24,6 @@ const Chat = () => {
 
   const {
     activeInterviewId,
-    activeInterviewRound,
-    setActiveInterviewRound,
     interviewFinishId,
     startInterview,
     finishInterview,
@@ -107,15 +104,9 @@ const Chat = () => {
     // 如果不是面试状态,直接结束.
     if (!activeInterviewId) return;
 
-    const {
-      next_question,
-      round: resultRound,
-      is_finished,
-    } = await interview({
+    const { next_question, is_finished } = await interview({
       interview_id: activeInterviewId,
-      question: getLastAssistantQuestion(messages),
       answer: content,
-      round: activeInterviewRound,
     });
 
     if (is_finished) {
@@ -128,18 +119,7 @@ const Chat = () => {
     } else {
       addAssistantMessage(next_question);
     }
-
-    setActiveInterviewRound(resultRound);
   };
-
-  // 根据历史消息总结.
-  const reportMessages = useMemo(
-    () =>
-      messages
-        .filter((m) => m.type === "text" && m.id !== "welcome")
-        .map(({ role, content }) => ({ role, content })),
-    [messages],
-  );
 
   return (
     <div className="flex h-screen w-screen flex-col bg-background">
@@ -164,7 +144,6 @@ const Chat = () => {
         open={finishDialogOpen}
         onOpenChange={setFinishDialogOpen}
         interviewId={interviewFinishId}
-        messages={reportMessages}
       />
     </div>
   );

@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   finishInterview,
-  type FinishInterviewMessage,
   type FinishInterviewResponse,
 } from "@/services/interview";
 import { cn } from "@/lib/utils";
@@ -26,7 +25,6 @@ import { cn } from "@/lib/utils";
 type InterviewResultDialogProps = {
   open: boolean;
   interviewId: string | null;
-  messages: FinishInterviewMessage[];
   onOpenChange: (open: boolean) => void;
 };
 
@@ -108,7 +106,6 @@ const Section = ({
 const InterviewResultDialog = ({
   open,
   interviewId,
-  messages,
   onOpenChange,
 }: InterviewResultDialogProps) => {
   const [loading, setLoading] = useState(false);
@@ -130,14 +127,14 @@ const InterviewResultDialog = ({
     setLoading(true);
     setError(null);
     try {
-      const data = await finishInterview(interviewId, messages);
+      const data = await finishInterview(interviewId);
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载失败");
     } finally {
       setLoading(false);
     }
-  }, [interviewId, messages]);
+  }, [interviewId]);
 
   useEffect(() => {
     if (!open || !interviewId) return;

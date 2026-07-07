@@ -12,9 +12,7 @@ type CreateInterviewResponse = {
 
 type InterviewMessage = {
   interview_id: string;
-  question: string;
   answer: string;
-  round: number;
 };
 
 type InterviewMessageResponse = {
@@ -30,11 +28,6 @@ export type FinishInterviewResponse = {
   strengths: string[];
   weaknesses: string[];
   suggestions: string[];
-};
-
-export type FinishInterviewMessage = {
-  role: string;
-  content: string;
 };
 
 export const createInterview = async (
@@ -81,7 +74,6 @@ export const interview = async (
 
 export const finishInterview = async (
   interviewId: string,
-  messages: FinishInterviewMessage[],
 ): Promise<FinishInterviewResponse> => {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/interviews/${interviewId}/finish`,
@@ -90,7 +82,7 @@ export const finishInterview = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({}),
     },
   );
 

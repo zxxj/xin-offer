@@ -9,14 +9,11 @@ export const useInterviewSession = () => {
   const [interviewFinishId, setInterviewFinishId] = useState<string | null>(
     null,
   );
-  // 当前面试会话的轮次.
-  const [activeInterviewRound, setActiveInterviewRound] = useState<number>(1);
 
   // 创建面试会话成功后,保存接口返回的ID.
   const startInterview = (interviewId: string) => {
     setActiveInterviewId(interviewId);
     setInterviewFinishId(interviewId);
-    setActiveInterviewRound(1);
   };
 
   // 面试模式中,轮次到了阈值就表示面试结束了.清除面试会话ID,回到闲聊模式.
@@ -32,8 +29,6 @@ export const useInterviewSession = () => {
   return {
     interviewFinishId,
     activeInterviewId,
-    activeInterviewRound,
-    setActiveInterviewRound,
     startInterview,
     finishInterview,
     openInterviewResult,

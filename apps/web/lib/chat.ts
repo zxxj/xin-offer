@@ -1,17 +1,7 @@
 import type {
   InterviewFinishMessage,
-  Message,
   TextMessage,
 } from "@/components/chat/types";
-
-// 找到上一轮的AI问题.
-export const getLastAssistantQuestion = (messages: Message[]) => {
-  return [...messages]
-    .reverse()
-    .find(
-      (m) => m.role === "assistant" && m.type === "text" && m.content.trim(),
-    )?.content as string;
-};
 
 // 创建用户消息.
 export const createUserTextMessage = (content: string): TextMessage => {
