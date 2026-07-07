@@ -28,12 +28,8 @@ class CreateInterviewResponse(BaseModel):
 
 # 用户追问时的请求体.
 class SubmitAnswerRequest(BaseModel):
-    # AI上一轮问的问题.
-    question: str = Field(min_length=1)
     # 用户的回答.
     answer: str = Field(min_length=1)
-    # 当前是第几轮对话,最多3轮.
-    round: int = Field(ge=1,le=3)
 
 # 追问的返回体.
 class SubmitAnswerResponse(BaseModel):
@@ -54,7 +50,7 @@ class InterviewMessageHistory(BaseModel):
 # 面试反馈请求体.
 class FinishInterviewRequest(BaseModel):
     # 消息列表.
-    messages: list[InterviewMessageHistory] = Field(min_length=1)
+    messages: list[InterviewMessageHistory] = Field(default_factory=list)
 
 # 面试反馈返回体.
 class FinishInterviewResponse(BaseModel):

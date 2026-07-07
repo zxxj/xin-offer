@@ -15,7 +15,6 @@ client = OpenAI(
 )
 
 def invoke(prompt: str) -> str:
-
   try:
     response = client.responses.create(
       model=settings.openai_model_name, 
@@ -25,4 +24,3 @@ def invoke(prompt: str) -> str:
 
   except Exception as error:
     raise OpenAIInvokeError("调用AI模型失败") from error
-

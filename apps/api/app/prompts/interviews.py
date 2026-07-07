@@ -1,4 +1,4 @@
-from app.schemas.interviews import CreateInterviewRequest, SubmitAnswerRequest, FinishInterviewRequest
+from app.schemas.interviews import CreateInterviewRequest, FinishInterviewRequest
 
 # 创建面试.
 def build_first_question_prompt(data: CreateInterviewRequest) -> str:
@@ -20,18 +20,18 @@ def build_first_question_prompt(data: CreateInterviewRequest) -> str:
 """.strip()
 
 # 多轮会话.
-def build_follow_up_question_prompt(data: SubmitAnswerRequest) -> str:
+def build_follow_up_question_prompt(question: str, answer: str, round: int) -> str:
   return f"""
 你是一个严格但友好的面试官.
 下面是候选人的上一轮面试内容:
 
 面试官问题: 
-{data.question}
+{question}
 
 候选人回答:
-{data.answer}
+{answer}
 
-当前轮次: 第{data.round} 轮.
+当前轮次: 第{round} 轮.
 
 请根据候选人的回答,生成一个有针对性的追问.
 
