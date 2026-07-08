@@ -1,0 +1,2 @@
+class InterviewNotFoundError(Exception):
+  pass

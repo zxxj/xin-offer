@@ -1,18 +1,20 @@
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Depends
 from app.schemas.interviews import CreateInterviewRequest, CreateInterviewResponse, SubmitAnswerRequest, SubmitAnswerResponse,FinishInterviewRequest, FinishInterviewResponse
 from app.services.interviews_service import create_interview_service, submit_answer_service, finish_interview_service
 from json import JSONDecodeError
 from app.client.openai_client import OpenAIInvokeError
 from pydantic import ValidationError
-from app.stores.interview_store import InterviewSessionNotFoundError
+from app.errors.interviews import InterviewNotFoundError
+from sqlalchemy.orm import Session
+from app.db.deps import get_db
 
 
 router = APIRouter()
 
 @router.post("/interviews", response_model=CreateInterviewResponse)
-def create_interview(data: CreateInterviewRequest):
+def create_interview(data: CreateInterviewRequest, db: Session = Depends(get_db)):
   try:
-    return create_interview_service(data)
+    return create_interview_service(data, db)
   except OpenAIInvokeError as error:
     raise HTTPException(status_code=502,detail="AI服务暂时不可用,请稍后重试!") from error
 
@@ -22,11 +24,11 @@ def create_interview(data: CreateInterviewRequest):
 
 # 三轮对话.
 @router.post("/interviews/{interview_id}/messages", response_model=SubmitAnswerResponse)
-def submit_answer(interview_id: str, data: SubmitAnswerRequest):
+def submit_answer(interview_id: str, data: SubmitAnswerRequest, db: Session = Depends(get_db)):
   try: 
-    return submit_answer_service(interview_id, data)
+    return submit_answer_service(interview_id, data, db)
   
-  except InterviewSessionNotFoundError as error:
+  except InterviewNotFoundError as error:
     raise HTTPException(status_code=404, detail="面试会话不存在!") from error
 
   except OpenAIInvokeError as error:
@@ -37,11 +39,11 @@ def submit_answer(interview_id: str, data: SubmitAnswerRequest):
   
 # 面试反馈与总结.
 @router.post("/interviews/{interview_id}/finish", response_model=FinishInterviewResponse)
-def finish_interview(interview_id: str, data: FinishInterviewRequest = Body(default_factory=FinishInterviewRequest)):
+def finish_interview(interview_id: str, data: FinishInterviewRequest = Body(default_factory=FinishInterviewRequest), db: Session = Depends(get_db)):
   try: 
-    return finish_interview_service(interview_id, data)
+    return finish_interview_service(interview_id, data, db)
   
-  except InterviewSessionNotFoundError as error:
+  except InterviewNotFoundError as error:
     raise HTTPException(status_code=404, detail="面试会话不存在!") from error
 
   except OpenAIInvokeError as error:
