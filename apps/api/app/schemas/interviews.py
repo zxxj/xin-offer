@@ -1,7 +1,8 @@
 # 面试相关.
 
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+from datetime import datetime
 
 
 # 定义面试难度的可选值,继承str是为了让枚举值在JSON中表现为字符串.
@@ -10,26 +11,30 @@ class Difficulty(str, Enum):
     middle = "middle"
     senior = "senior"
 
+
 # 创建面试的请求体.
 class CreateInterviewRequest(BaseModel):
     # 目标岗位不能为空.
     target_role: str = Field(min_length=1)
-    #技术栈至少要有一项.
+    # 技术栈至少要有一项.
     tech_stack: list[str] = Field(min_length=1)
-    #工作年限必须在0~30之间.
+    # 工作年限必须在0~30之间.
     experience_years: int = Field(ge=0, le=30)
-    #面试难度范围.
+    # 面试难度范围.
     difficulty: Difficulty
+
 
 # 创建面试的响应体.
 class CreateInterviewResponse(BaseModel):
     interview_id: str
     first_question: str
 
+
 # 用户追问时的请求体.
 class SubmitAnswerRequest(BaseModel):
     # 用户的回答.
     answer: str = Field(min_length=1)
+
 
 # 追问的返回体.
 class SubmitAnswerResponse(BaseModel):
@@ -39,7 +44,8 @@ class SubmitAnswerResponse(BaseModel):
     # 下一轮的轮次.
     round: int
     # 面试是否结束.
-    is_finished: bool 
+    is_finished: bool
+
 
 # 面试最终反馈.
 # 历史消息列表.
@@ -47,10 +53,12 @@ class InterviewMessageHistory(BaseModel):
     role: str = Field(min_length=1)
     content: str = Field(min_length=1)
 
+
 # 面试反馈请求体.
 class FinishInterviewRequest(BaseModel):
     # 消息列表.
     messages: list[InterviewMessageHistory] = Field(default_factory=list)
+
 
 # 面试反馈返回体.
 class FinishInterviewResponse(BaseModel):
@@ -64,3 +72,18 @@ class FinishInterviewResponse(BaseModel):
     weaknesses: list[str]
     # 学习建议.
     suggestions: list[str]
+
+
+# 历史记录返回类型.
+class InterviewItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)  # 允许pydantic从对象属性里读取数据.
+
+    id: str
+    target_role: str
+    tech_stack: str
+    experience_years: int
+    difficulty: str
+    status: str
+    current_round: int
+    created_at: datetime
+    updated_at: datetime
