@@ -59,13 +59,16 @@ const MessageList = ({
                 <div key={m.id} className="flex w-full justify-start">
                   <Button
                     onClick={() =>
-                      handleViewInterviewResultButton(m.interviewId)
+                      handleViewInterviewResultButton(
+                        m.interviewId,
+                        m.resultMode,
+                      )
                     }
                     variant="default"
                     size="sm"
                     className="group rounded-full px-4 shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]"
                   >
-                    查看面试结果
+                    {m.resultMode === "generate" ? "生成面试结果" : "查看面试结果"}
                     <ArrowRight className="ml-1.5 size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                   </Button>
                 </div>

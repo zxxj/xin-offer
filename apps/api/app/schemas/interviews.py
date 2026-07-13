@@ -87,3 +87,15 @@ class InterviewItem(BaseModel):
     current_round: int
     created_at: datetime
     updated_at: datetime
+
+
+# 面试消息列表.
+class InterviewMessageItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    interview_id: str
+    role: str
+    content: str
+    round: int
+    created_at: datetime

@@ -1,5 +1,6 @@
 import type {
   InterviewFinishMessage,
+  InterviewResultMode,
   TextMessage,
 } from "@/components/chat/types";
 
@@ -27,6 +28,7 @@ export const createAssistantTextMessage = (content: string): TextMessage => {
 export const createAssistantInterviewFinishedMessage = (
   content: string,
   interviewId: string,
+  resultMode: InterviewResultMode = "generate",
 ): InterviewFinishMessage => {
   return {
     id: crypto.randomUUID(),
@@ -34,5 +36,6 @@ export const createAssistantInterviewFinishedMessage = (
     role: "assistant",
     content,
     interviewId,
+    resultMode,
   };
 };

@@ -18,14 +18,18 @@ import {
 } from "@/components/ui/dialog";
 import {
   finishInterview,
+  getInterviewReport,
   type FinishInterviewResponse,
 } from "@/services/interview";
 import { cn } from "@/lib/utils";
+import type { InterviewResultMode } from "./types";
 
 type InterviewResultDialogProps = {
   open: boolean;
   interviewId: string | null;
+  mode: InterviewResultMode;
   onOpenChange: (open: boolean) => void;
+  onReportGenerated?: () => void | Promise<void>;
 };
 
 const RING_RADIUS = 45;
@@ -106,7 +110,9 @@ const Section = ({
 const InterviewResultDialog = ({
   open,
   interviewId,
+  mode,
   onOpenChange,
+  onReportGenerated,
 }: InterviewResultDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,14 +133,20 @@ const InterviewResultDialog = ({
     setLoading(true);
     setError(null);
     try {
-      const data = await finishInterview(interviewId);
+      const data =
+        mode === "generate"
+          ? await finishInterview(interviewId)
+          : await getInterviewReport(interviewId);
       setResult(data);
+      if (mode === "generate") {
+        void onReportGenerated?.();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载失败");
     } finally {
       setLoading(false);
     }
-  }, [interviewId]);
+  }, [interviewId, mode, onReportGenerated]);
 
   useEffect(() => {
     if (!open || !interviewId) return;
@@ -170,7 +182,7 @@ const InterviewResultDialog = ({
         {loading && (
           <div className="flex flex-col items-center justify-center gap-3 py-12 text-sm text-muted-foreground">
             <Loader className="size-5 animate-spin" />
-            正在生成反馈报告…
+            {mode === "generate" ? "正在生成反馈报告…" : "正在加载反馈报告…"}
           </div>
         )}
 

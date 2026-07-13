@@ -8,6 +8,7 @@ from app.schemas.interviews import (
     FinishInterviewRequest,
     FinishInterviewResponse,
     InterviewMessageHistory,
+    InterviewMessageItem,
 )
 from app.prompts.interviews import (
     build_first_question_prompt,
@@ -16,7 +17,7 @@ from app.prompts.interviews import (
 )
 from app.utils.format_json import parse_json_from_text
 from app.client.openai_client import invoke
-from app.errors.interviews import InterviewNotFoundError
+from app.errors.interviews import InterviewNotFoundError, InterviewReportNotFoundError
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import datetime
@@ -208,6 +209,31 @@ def finish_interview_service(
     return response_data
 
 
+# 查询某场面试的结果报告.
+def get_interview_report_service(
+    interview_id: str, db: Session
+) -> FinishInterviewResponse:
+    interview = db.get(Interview, interview_id)
+
+    if not interview:
+        raise InterviewNotFoundError("面试会话不存在!")
+
+    report = db.execute(
+        select(InterviewReport).where(InterviewReport.interview_id == interview_id)
+    ).scalar_one_or_none()
+
+    if not report:
+        raise InterviewReportNotFoundError("面试报告不存在!")
+
+    return FinishInterviewResponse(
+        interview_id=interview_id,
+        score=report.score,
+        suggestions=report.suggestions.split(";"),
+        strengths=report.strengths.split(";"),
+        weaknesses=report.weaknesses.split(";"),
+    )
+
+
 # 历史记录.
 def list_interviews_service(db: Session) -> list[InterviewItem]:
     interviews = (
@@ -217,3 +243,36 @@ def list_interviews_service(db: Session) -> list[InterviewItem]:
     )
 
     return [InterviewItem.model_validate(interview) for interview in interviews]
+
+
+# 查询某场面试的详情.
+def get_interview_detail_service(interview_id: str, db: Session) -> InterviewItem:
+    interview = db.get(Interview, interview_id)
+
+    if not interview:
+        raise InterviewNotFoundError("面试会话不存在!")
+
+    return InterviewItem.model_validate(interview)
+
+
+# 查询某场面试的对话记录.
+def get_interview_message_service(
+    interview_id: str, db: Session
+) -> list[InterviewMessageItem]:
+    interview = db.get(Interview, interview_id)
+
+    if not interview:
+        raise InterviewNotFoundError("面试会话不存在!")
+
+    # 消息列表.
+    messages = (
+        db.execute(
+            select(InterviewMessage)
+            .where(InterviewMessage.interview_id == interview_id)
+            .order_by(InterviewMessage.id.asc())
+        )
+        .scalars()
+        .all()
+    )
+
+    return [InterviewMessageItem.model_validate(message) for message in messages]

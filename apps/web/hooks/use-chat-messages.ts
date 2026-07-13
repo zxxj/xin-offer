@@ -7,31 +7,45 @@ import {
   createUserTextMessage,
 } from "@/lib/chat";
 import { INITIAL_MESSAGES } from "@/lib/const";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export const useChatMessages = () => {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
 
-  const addUserMessage = (content: string) => {
+  const addUserMessage = useCallback((content: string) => {
     setMessages((prev) => [...prev, createUserTextMessage(content)]);
-  };
+  }, []);
 
-  const addAssistantMessage = (content: string) => {
+  const addAssistantMessage = useCallback((content: string) => {
     setMessages((prev) => [...prev, createAssistantTextMessage(content)]);
-  };
+  }, []);
 
-  const addAssistantFinishMessage = (content: string, interviewId: string) => {
+  const addAssistantFinishMessage = useCallback((
+    content: string,
+    interviewId: string,
+    resultMode: "generate" | "view" = "generate",
+  ) => {
     setMessages((prev) => [
       ...prev,
-      createAssistantInterviewFinishedMessage(content, interviewId),
+      createAssistantInterviewFinishedMessage(content, interviewId, resultMode),
     ]);
-  };
+  }, []);
 
-  const addAssistantErrorMessage = (
+  const addAssistantErrorMessage = useCallback((
     content: string = "抱歉,请求失败,请稍后重试.",
   ) => {
     setMessages((prev) => [...prev, createAssistantTextMessage(content)]);
-  };
+  }, []);
+
+  // 加载历史会话消息(替换当前列表).
+  const loadMessages = useCallback((history: Message[]) => {
+    setMessages(history);
+  }, []);
+
+  // 恢复到初始闲聊状态,用于开始一场新的面试.
+  const resetMessages = useCallback(() => {
+    setMessages(INITIAL_MESSAGES);
+  }, []);
 
   return {
     messages,
@@ -39,5 +53,7 @@ export const useChatMessages = () => {
     addAssistantMessage,
     addAssistantFinishMessage,
     addAssistantErrorMessage,
+    loadMessages,
+    resetMessages,
   };
 };

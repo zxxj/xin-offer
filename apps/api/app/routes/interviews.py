@@ -7,9 +7,13 @@ from app.schemas.interviews import (
     SubmitAnswerResponse,
     FinishInterviewRequest,
     FinishInterviewResponse,
+    InterviewMessageItem,
 )
 from app.services.interviews_service import (
     create_interview_service,
+    get_interview_detail_service,
+    get_interview_message_service,
+    get_interview_report_service,
     list_interviews_service,
     submit_answer_service,
     finish_interview_service,
@@ -17,13 +21,14 @@ from app.services.interviews_service import (
 from json import JSONDecodeError
 from app.client.openai_client import OpenAIInvokeError
 from pydantic import ValidationError
-from app.errors.interviews import InterviewNotFoundError
+from app.errors.interviews import InterviewNotFoundError, InterviewReportNotFoundError
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
 
 router = APIRouter()
 
 
+# 查询面试会话列表.
 @router.get("/interviews", response_model=list[InterviewItem])
 def list_interview(db: Session = Depends(get_db)):
     try:
@@ -34,6 +39,35 @@ def list_interview(db: Session = Depends(get_db)):
         ) from error
 
 
+# 查询某场面试的会话详情.
+@router.get("/interviews/{interview_id}", response_model=InterviewItem)
+def get_interview_detail(interview_id: str, db: Session = Depends(get_db)):
+    try:
+        return get_interview_detail_service(interview_id, db)
+    except InterviewNotFoundError as error:
+        raise HTTPException(status_code=404, detail="面试会话不存在!") from error
+    except Exception as error:
+        raise HTTPException(
+            status_code=500, detail="查看面试详情失败,请重试!"
+        ) from error
+
+
+# 查询某场面试的对话记录.
+@router.get(
+    "/interviews/{interview_id}/messages", response_model=list[InterviewMessageItem]
+)
+def get_interview_message(interview_id: str, db: Session = Depends(get_db)):
+    try:
+        return get_interview_message_service(interview_id, db)
+    except InterviewNotFoundError as error:
+        raise HTTPException(status_code=404, detail="面试会话不存在!") from error
+    except Exception as error:
+        raise HTTPException(
+            status_code=500, detail="查看面试详情失败,请重试!"
+        ) from error
+
+
+# 创建面试会话.
 @router.post("/interviews", response_model=CreateInterviewResponse)
 def create_interview(data: CreateInterviewRequest, db: Session = Depends(get_db)):
     try:
@@ -47,7 +81,7 @@ def create_interview(data: CreateInterviewRequest, db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail="创建面试失败,请重试!") from error
 
 
-# 三轮对话.
+# 多轮对话.
 @router.post("/interviews/{interview_id}/messages", response_model=SubmitAnswerResponse)
 def submit_answer(
     interview_id: str, data: SubmitAnswerRequest, db: Session = Depends(get_db)
@@ -95,4 +129,19 @@ def finish_interview(
     except Exception as error:
         raise HTTPException(
             status_code=500, detail="生成面试结果失败,请重试!"
+        ) from error
+
+
+# 查询某场面试的结果报告.
+@router.get("/interviews/{interview_id}/report", response_model=FinishInterviewResponse)
+def get_interview_report(interview_id: str, db: Session = Depends(get_db)):
+    try:
+        return get_interview_report_service(interview_id, db)
+    except InterviewNotFoundError as error:
+        raise HTTPException(status_code=404, detail="面试会话不存在!") from error
+    except InterviewReportNotFoundError as error:
+        raise HTTPException(status_code=404, detail="面试报告不存在!") from error
+    except Exception as error:
+        raise HTTPException(
+            status_code=500, detail="查询面试结果失败,请重试!"
         ) from error
