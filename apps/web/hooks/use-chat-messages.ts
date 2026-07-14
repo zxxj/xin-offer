@@ -20,22 +20,30 @@ export const useChatMessages = () => {
     setMessages((prev) => [...prev, createAssistantTextMessage(content)]);
   }, []);
 
-  const addAssistantFinishMessage = useCallback((
-    content: string,
-    interviewId: string,
-    resultMode: "generate" | "view" = "generate",
-  ) => {
-    setMessages((prev) => [
-      ...prev,
-      createAssistantInterviewFinishedMessage(content, interviewId, resultMode),
-    ]);
-  }, []);
+  const addAssistantFinishMessage = useCallback(
+    (
+      content: string,
+      interviewId: string,
+      resultMode: "generate" | "view" = "generate",
+    ) => {
+      setMessages((prev) => [
+        ...prev,
+        createAssistantInterviewFinishedMessage(
+          content,
+          interviewId,
+          resultMode,
+        ),
+      ]);
+    },
+    [],
+  );
 
-  const addAssistantErrorMessage = useCallback((
-    content: string = "抱歉,请求失败,请稍后重试.",
-  ) => {
-    setMessages((prev) => [...prev, createAssistantTextMessage(content)]);
-  }, []);
+  const addAssistantErrorMessage = useCallback(
+    (content: string = "抱歉,请求失败,请稍后重试.") => {
+      setMessages((prev) => [...prev, createAssistantTextMessage(content)]);
+    },
+    [],
+  );
 
   // 加载历史会话消息(替换当前列表).
   const loadMessages = useCallback((history: Message[]) => {
@@ -47,6 +55,33 @@ export const useChatMessages = () => {
     setMessages(INITIAL_MESSAGES);
   }, []);
 
+  const startAssistantStreamMessage = useCallback(() => {
+    const message = createAssistantTextMessage("");
+
+    setMessages((prev) => [...prev, message]);
+
+    return message.id;
+  }, []);
+
+  const appendAssistantStreamDelta = useCallback(
+    (messageId: string, delta: string) => {
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (
+            m.id !== messageId ||
+            m.type !== "text" ||
+            m.role !== "assistant"
+          ) {
+            return m;
+          } else {
+            return { ...m, content: `${m.content}${delta}` };
+          }
+        }),
+      );
+    },
+    [],
+  );
+
   return {
     messages,
     addUserMessage,
@@ -55,5 +90,7 @@ export const useChatMessages = () => {
     addAssistantErrorMessage,
     loadMessages,
     resetMessages,
+    startAssistantStreamMessage,
+    appendAssistantStreamDelta,
   };
 };

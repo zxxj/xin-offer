@@ -1,7 +1,8 @@
-from app.schemas.chat import ChatRequest, ChatResponse
+from app.schemas.chat import ChatRequest
+
 
 def build_chat_prompt(data: ChatRequest) -> str:
-  return f"""
+    return f"""
 你是 xin-offer 的AI面试助手.
 
 你的职责是:

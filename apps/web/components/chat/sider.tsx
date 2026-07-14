@@ -31,7 +31,7 @@ const Sider = ({
     <aside
       className={cn(
         "flex h-full flex-col bg-sidebar transition-all duration-200",
-        collapsed ? "w-16" : "w-[280px]",
+        collapsed ? "w-16" : "w-70",
       )}
     >
       {/* 折叠态 */}
@@ -43,7 +43,7 @@ const Sider = ({
             className="flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             aria-label="展开侧边栏"
           >
-            <ChevronRight className="size-[18px]" />
+            <ChevronRight className="size-4.5" />
           </button>
           <button
             type="button"
@@ -51,7 +51,7 @@ const Sider = ({
             className="flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             aria-label="新建面试"
           >
-            <MessageSquarePlus className="size-[18px]" />
+            <MessageSquarePlus className="size-4.5" />
           </button>
         </div>
       ) : (
@@ -73,13 +73,13 @@ const Sider = ({
 
           {/* 搜索 */}
           <div className="relative px-3 pb-3">
-            <Search className="pointer-events-none absolute top-1/2 left-5.5 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
+            <Search className="pointer-events-none absolute top-1/2 left-[22px] size-3.5 -translate-y-1/2 text-muted-foreground/50" />
             <Input
               type="text"
-              placeholder="搜索..."
+              placeholder="搜索历史会话"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="h-9 rounded-xl border-sidebar-border/60 bg-background/60 pl-8.5 text-[13px] placeholder:text-muted-foreground/40 focus-visible:ring-1"
+              className="h-9 rounded-xl border-sidebar-border/60 bg-background/60 pl-[34px] text-[13px] placeholder:text-muted-foreground/40 focus-visible:ring-1"
             />
           </div>
 
@@ -88,7 +88,7 @@ const Sider = ({
             {loading ? (
               <div className="flex flex-col items-center gap-2 pt-16 text-center text-xs text-muted-foreground/60">
                 <LoaderCircle className="size-4 animate-spin" />
-                正在加载面试记录
+                加载中
               </div>
             ) : error ? (
               <div className="flex flex-col items-center gap-3 px-4 pt-16 text-center">
@@ -106,7 +106,7 @@ const Sider = ({
               <div className="flex flex-col items-center gap-1.5 pt-16 text-center">
                 <div className="size-10 rounded-full bg-sidebar-accent/50" />
                 <p className="text-xs text-muted-foreground/50">
-                  暂无面试记录
+                  暂无面试记录，开始一个新面试吧！
                 </p>
               </div>
             ) : (

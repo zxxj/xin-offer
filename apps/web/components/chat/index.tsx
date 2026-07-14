@@ -9,7 +9,7 @@ import Sider from "./sider";
 import CreateInterviewDialog, {
   type StartInterviewPayload,
 } from "./create-interview-dialog";
-import { chat } from "@/services/chat";
+import { chat, chatStream } from "@/services/chat";
 import {
   createInterview,
   interview,
@@ -33,6 +33,8 @@ const Chat = () => {
     addAssistantErrorMessage,
     loadMessages,
     resetMessages,
+    startAssistantStreamMessage,
+    appendAssistantStreamDelta,
   } = useChatMessages();
 
   const {
@@ -139,8 +141,14 @@ const Chat = () => {
 
   // 闲聊模式.
   const handleChatMessage = async (content: string) => {
-    const { reply } = await chat({ message: content });
-    addAssistantMessage(reply);
+    const messageId = await startAssistantStreamMessage();
+
+    await chatStream({
+      message: content,
+      onDelta: (delta) => {
+        appendAssistantStreamDelta(messageId, delta);
+      },
+    });
   };
 
   // 面试模式.
